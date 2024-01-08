@@ -1,0 +1,175 @@
+#!/bin/bash
+
+# set -x
+
+# This script will initialise/plan terraform and create the required storage container in the supplied storage account if it does not exist.
+
+############################ FUNCTIONS ####################################################
+usage() {
+    echo "USAGE: $0"
+    echo "  [--working-directory] The directory which you want to perform the terraform operation on"
+    echo "  [--prompt-for-login [true] prompt the user for SPN login credentials"
+    echo "  [--subscription-id] Azure subscription id"
+    echo "  [--resource-group] Azure resource group that the storage account resides in"
+    echo "  [--storage-account] Azure storage account to use"
+    echo "  [--container-name] Azure storage account container to store\use state file in"
+    echo "  [--state-file-name] name of the state file"
+    echo "  [--var-files] comma seperate list of var file to be fed into TF"
+    echo "  [--var-files-folder] path to folder where var files should to copied into the working folder"
+    echo "  [-h|--help] Usage message"
+}
+
+invalidParams() {
+    echo "Missing required param: $1"
+    usage
+    exit 1
+}
+
+terraform_init() {
+    echo "======================================================="
+    echo "================ Init Terraform ======================="
+    echo "======================================================="
+    terraform init \
+        -backend-config="storage_account_name=$storage_account" \
+        -backend-config="container_name=$container_name" \
+        -backend-config="resource_group_name=$resource_group"\
+        -backend-config="key=$state_file_name" \
+        -no-color \
+        $working_directory
+       
+
+    EXIT_CODE="$?"
+    if [[ "$EXIT_CODE" -gt 0 ]]; then exit "$EXIT_CODE"; fi
+}
+
+############################ MAIN ####################################################
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        --prompt-for-login)
+        prompt_for_login="$2"
+        shift
+        shift
+        ;;
+        --working-directory)
+        working_directory="$2"
+        shift
+        shift
+        ;;
+        --subscription-id)
+        subscription_id="$2"
+        shift
+        shift
+        ;;
+        --resource-group)
+        resource_group="$2"
+        shift
+        shift
+        ;;
+        --storage-account)
+        storage_account="$2"
+        shift
+        shift
+        ;;
+        --container-name)
+        container_name="$2"
+        shift
+        shift
+        ;;
+        --state-file-name)
+        state_file_name="$2"
+        shift
+        shift
+        ;;
+        --var-files)
+        var_files="$2"
+        shift
+        shift
+        ;;
+        --var-files-folder)
+        var_files_folder="$2"
+        shift
+        shift
+        ;;           
+        -h|--help)
+        help="true"
+        shift
+        ;;
+        *)
+        usage
+        exit 1
+        ;;
+    esac
+done    
+
+# If working dir not present then assume we are in it
+[ $working_directory ] || working_directory="."
+
+if [ -z "$subscription_id" ]; then
+    invaalidParams "--subscription-id" 
+fi
+# if [ -z $client_id ]; then
+#     invalidParams "--client-id" 
+# fi
+#  if [ -z $client_secret ]; then
+#      invalidParams "--client-secret" 
+#  fi
+if [ -z $resource_group ]; then
+    invalidParams "--resource-group" 
+fi
+if [ -z $storage_account ]; then
+    invalidParams "--storage-account" 
+fi
+if [ -z $container_name ]; then
+    invalidParams "--container-name" 
+fi
+if [ -z $state_file_name ]; then
+    invalidParams "--state-file-name" 
+fi
+
+if [ $prompt_for_login ]; then
+
+    read -p 'TenantID: ' tenantId 
+    read -p 'Service Principal ID: ' servicePrincipalId
+    read -p 'Service Principal Key: ' servicePrincipalKey 
+    az login --service-principal -u $servicePrincipalId -p $servicePrincipalKey --tenant $tenantId
+    az account set --subscription $subscription_id
+fi
+
+
+
+
+
+
+
+containerExists=$(az storage container exists --account-name "$storage_account" --name "$container_name" --query exists --output tsv)
+if [[ $containerExists != "true" ]]
+then
+    echo "Creating container: $container_name"
+    containerResult=$(az storage container create --name "$container_name" --account-name "$storage_account" --query created --output tsv)
+    if [[ $containerResult ]]
+    then
+        echo "Container create successfully"
+    else
+        echo "Error - unable to create storage container"
+        exit 1
+    fi
+   
+    permissionResult=$(az storage container set-permission --name "$container_name" --account-name "$storage_account" --public-access off )
+    if [[ $permissionResult ]]
+    then
+        echo "Container permission set successfully"
+    else
+        echo "Error - unable to set permission on storage container"
+        exit 1
+    fi
+   
+else
+    echo "Found existing container: $container_name"
+fi
+
+export ARM_CLIENT_SECRET="$servicePrincipalKey"
+export ARM_CLIENT_ID="$servicePrincipalId"
+export ARM_SUBSCRIPTION_ID="$subscription_id"
+export ARM_TENANT_ID="$tenantId"
