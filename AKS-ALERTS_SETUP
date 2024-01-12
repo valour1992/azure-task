@@ -1,0 +1,26 @@
+
+Cluster CPU Utilisation - Critical	AKS cluster node CPU utilisation above 95%.
+Cluster Memory Utilisation - Critical	AKS cluster node memory utilisation above 95%.
+Cluster Disk Utilisation - Critical	AKS cluster node disk utilisation above 95%.
+Agent Heartbeat Failure - Critical	AKS cluster Log Analytics Agent heartbeat failure.  
+Cluster Heartbeat Failure - Critical	AKS cluster heartbeat failure.  
+Node Status NotReady - Critical	AKS cluster node status is notready.
+Pod CPU Utilisation - Critical	AKS cluster pod CPU utilisation above 95%.
+Pod Memory Utilisation - Critical	AKS cluster pod memory utilisation above 95%.
+Pod Restart Count - Critical	AKS cluster pod restart count above 5 in 15 minutes.
+Pod Status Unhealthy - Critical	AKS cluster pod status unhealthy.
+Cluster CPU Utilisation - Warning	AKS cluster node CPU utilisation above 85%.
+Cluster Memory Utilisation - Warning	AKS cluster node memory utilisation above 85%.
+Cluster Disk Utilisation - Warning	AKS cluster node disk utilisation above 85%.
+Pod CPU Utilisation - Warning	AKS cluster pod CPU utilisation above 85%.
+Pod Memory Utilisation - Warning	AKS cluster pod memory utilisation above 85%.
+Pod Restart Count - Warning	AKS cluster pod restart count above 3 in 15 minutes.
+Pod Status Unhealthy - Warning	AKS cluster pod status terminated due to unspecified error.
+Pod CPU Utilisation NonKubeOps - Critical	AKS cluster pod CPU utilisation above 95%.
+Pod CPU Utilisation NonKubeOps - Warning	AKS cluster pod CPU utilisation above 85%.
+Pod Memory Utilisation NonKubeOps  - Critical	AKS cluster pod memory utilisation above 95%.
+Pod Memory Utilisation NonKubeOps - Warning	AKS cluster pod memory utilisation above 85%.
+Pod Restart Count NonKubeOps - Critical	AKS cluster pod restart count above 3 in 15 minutes.
+Pod Restart Count NonKubeOps - Warning	AKS cluster pod restart count above 1 in 15 minutes.
+Pod Status Unhealthy NonKubeOps - Critical	AKS cluster pod status unhealthy.
+Pod Status Unhealthy NonKubeOps - Warning	AKS cluster pod status terminated due to unspecified error.
